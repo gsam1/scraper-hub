@@ -15,6 +15,5 @@ apt-get install -y docker-ce
 echo "#### Adjusting user settings."
 groupadd docker
 usermod -aG docker vagrant
-usermod -aG docker fury
 
 echo "#### Docker installation done."
