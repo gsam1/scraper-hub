@@ -1,0 +1,8 @@
+/admin/bin/*
+/admin/include/*
+/admin/lib/*
+/admin/clients/__pycache__/*
+/admin/config/config.json
+/admin/config/__pycache__/*
+/warehouse/.vagrant/*
+/warehouse/*.log
