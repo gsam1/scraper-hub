@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, request
 from flask import jsonify
 from clients import ClientDocker
 from config import admin_config
@@ -6,6 +6,7 @@ from config import admin_config
 ENV = 'development'
 admin = Flask(__name__)
 config = admin_config[ENV]()
+image_map = config.image_map
 cld = ClientDocker(config.docker_url)
 
 @admin.route('/')
@@ -29,7 +30,13 @@ def get_active_container_ports():
 @admin.route('/get_all_container_ports')
 def get_all_container_ports():
     return jsonify(cld.get_all_container_ports())
-    
+
+@admin.route('/run_container', methods=['POST'])
+def run_container():
+    req_json = request.get_json()
+    image = image_map[req_json['type']]['image']
+    cntr_id = cld.run_container(req_json)
+    return f'{cntr_id}'
 
 if __name__ == '__main__':
     admin.run(debug=True)

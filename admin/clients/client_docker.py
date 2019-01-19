@@ -62,6 +62,11 @@ class ClientDocker(object):
     def get_all_container_ports(self):
         all_containers = self.get_all_containers()
         return self._get_host_port_list(all_containers)
+    
+    def run_container(self, image, options=None):
+        # parse options
+        container = self.client.containers.run("bfirsh/reticulate-splines", detach=True)
+        return container.name
 
 
 def main():

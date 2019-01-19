@@ -5,6 +5,7 @@ import json
 class Config(object):
     def __init__(self):
         self.host_config = json.load(open(os.path.dirname(os.path.realpath(__file__)) + '/config.json'))
+        self.image_map = json.load(open(os.path.dirname(os.path.realpath(__file__)) + '/image_type_map.json'))
 
 class DevelopmentConfig(Config):
     def __init__(self):
@@ -28,5 +29,4 @@ admin_config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
     'production': ProductionConfig
-
 }
