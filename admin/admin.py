@@ -22,6 +22,14 @@ def get_active_containers():
     # containers_list = str(cld.get_active_containers())
     return jsonify(cld.get_active_containers())
 
+@admin.route('/get_active_container_ports')
+def get_active_container_ports():
+    return jsonify(cld.get_active_container_ports())
+
+@admin.route('/get_all_container_ports')
+def get_all_container_ports():
+    return jsonify(cld.get_all_container_ports())
+    
 
 if __name__ == '__main__':
     admin.run(debug=True)
