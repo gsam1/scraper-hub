@@ -63,9 +63,25 @@ class ClientDocker(object):
         all_containers = self.get_all_containers()
         return self._get_host_port_list(all_containers)
     
-    def run_container(self, image, options=None):
-        # parse options
-        # container = self.client.containers.run(image, detach=True)
+    def run_container(self, image, port, *args, **kwargs):
+        restart_policy = {'Name':'always', 'MaximumRetryCount':5}
+        volume = None
+        env_vars = None
+        if 'volume' in kwarg.keys():
+            volume = {'/home/vagrant/' + image + '/data': kwargs['volume'] }
+        if 'env_vars' in kwarg.keys():
+            env_vars = kwargs['env_vars']
+        # {'2222/tcp': 3333}
+        ports = {''}
+        # TODO: Handle ports
+        # 1. Check if container is needed
+        # 2. Check if port is taken - TRUE -> assign a new random one 5000+
+        # 3. Return container
+
+
+
+        container = self.client.containers.run(image, restart_policy=restart_policy,
+                                                port={}, detach=True)
         
         return image
 

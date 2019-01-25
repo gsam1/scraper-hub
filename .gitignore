@@ -4,5 +4,6 @@
 /admin/clients/__pycache__/*
 /admin/config/config.json
 /admin/config/__pycache__/*
+/admin/playground/*
 /warehouse/.vagrant/*
 /warehouse/*.log

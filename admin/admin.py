@@ -35,7 +35,10 @@ def get_all_container_ports():
 def run_container():
     req_json = request.get_json()
     image = image_map[req_json['type']][req_json['distribution']]['image']
-    cntr_id = cld.run_container(image)
+    port = image_map[req_json['type']][req_json['distribution']]['default_port']
+    volume = image_map[req_json['type']][req_json['distribution']]['data_location']
+    env_vars = image_map[req_json['type']][req_json['distribution']]['env_vars']
+    cntr_id = cld.run_container(image, port, volume=volume, env_vars=env_vars)
     return f'{cntr_id}'
 
 if __name__ == '__main__':
