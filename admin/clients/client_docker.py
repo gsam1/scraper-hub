@@ -65,8 +65,9 @@ class ClientDocker(object):
     
     def run_container(self, image, options=None):
         # parse options
-        container = self.client.containers.run("bfirsh/reticulate-splines", detach=True)
-        return container.name
+        # container = self.client.containers.run(image, detach=True)
+        
+        return image
 
 
 def main():

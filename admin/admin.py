@@ -34,8 +34,8 @@ def get_all_container_ports():
 @admin.route('/run_container', methods=['POST'])
 def run_container():
     req_json = request.get_json()
-    image = image_map[req_json['type']]['image']
-    cntr_id = cld.run_container(req_json)
+    image = image_map[req_json['type']][req_json['distribution']]['image']
+    cntr_id = cld.run_container(image)
     return f'{cntr_id}'
 
 if __name__ == '__main__':
