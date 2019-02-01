@@ -1,5 +1,6 @@
 import os, sys
 import docker
+import random
 # Hacky imports to test inital functionallity,
 # later on will be removed as everything 
 # will be imported by the parent admin api
@@ -19,6 +20,7 @@ class ClientDocker(object):
         for container in cntrlist:
             container_list.append({
                 'name': container.name,
+                'image': container.image.tags[0],
                 'ports': container.attrs['NetworkSettings']['Ports']
             })
 
@@ -41,12 +43,27 @@ class ClientDocker(object):
                 external_port_list.append(external_port)
             external_ports.append({
                 'name': container['name'],
+                'image': container['image'],
                 'external-port-lists': external_port_list
             })
 
         return external_ports
-
     
+    def _generate_random_port(self):
+        generated_port_number = 5000 + random.randint(1, 4000)
+        return str(generated_port_number)
+
+    def _search_for_port(self, port):
+        container_image_port_list = self.get_all_container_ports()
+
+        for container in container_image_port_list:
+            if container['port'] == port:
+                return True
+        
+        return False
+    
+    def 
+
     def get_active_containers(self):
         active_containers = self.client.containers.list()
         return self._create_container_obj_list(active_containers)
@@ -63,14 +80,11 @@ class ClientDocker(object):
         all_containers = self.get_all_containers()
         return self._get_host_port_list(all_containers)
     
-    def run_container(self, image, port, *args, **kwargs):
+    def run_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always', 'MaximumRetryCount':5}
-        volume = None
-        env_vars = None
-        if 'volume' in kwarg.keys():
+        if volume is not None:
             volume = {'/home/vagrant/' + image + '/data': kwargs['volume'] }
-        if 'env_vars' in kwarg.keys():
-            env_vars = kwargs['env_vars']
+        
         # {'2222/tcp': 3333}
         ports = {''}
         # TODO: Handle ports
