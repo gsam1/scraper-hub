@@ -55,14 +55,24 @@ class ClientDocker(object):
 
     def _search_for_port(self, port):
         container_image_port_list = self.get_all_container_ports()
-
+        
         for container in container_image_port_list:
             if container['port'] == port:
                 return True
         
         return False
     
-    def 
+    def _check_port_availability(self, port):
+        return_port = port
+        port_taken = True
+        while port_taken == True:
+            if self._search_for_port(port):
+                return_port = self._generate_random_port()
+            else:
+                port_taken = False
+        
+        return return_port
+
 
     def get_active_containers(self):
         active_containers = self.client.containers.list()
@@ -83,19 +93,19 @@ class ClientDocker(object):
     def run_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always', 'MaximumRetryCount':5}
         if volume is not None:
-            volume = {'/home/vagrant/' + image + '/data': kwargs['volume'] }
+            volume = {'/home/vagrant/' + image + '/data': volume }
         
         # {'2222/tcp': 3333}
-        ports = {''}
+        internal_port = f'{port}/tcp'
+        externa_port = self._check_port_availability(port)
+        # handle multiple ports
+        ports = {internal_port: external_port} 
         # TODO: Handle ports
         # 1. Check if container is needed
         # 2. Check if port is taken - TRUE -> assign a new random one 5000+
         # 3. Return container
-
-
-
         container = self.client.containers.run(image, restart_policy=restart_policy,
-                                                port={}, detach=True)
+                                                port=ports, detach=True)
         
         return image
 
