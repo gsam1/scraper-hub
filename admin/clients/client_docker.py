@@ -42,7 +42,7 @@ class ClientDocker(object):
                     external_port = port.split('/')[0]
                 # add external port to list
                 external_port_list.append(external_port)
-                combined_ports_list.extend(external_port)
+                combined_ports_list.append(external_port)
             external_ports_dict.append({
                 'name': container['name'],
                 'image': container['image'],
@@ -56,7 +56,8 @@ class ClientDocker(object):
         return str(generated_port_number)
 
     def _search_for_port(self, port):
-        container_image_port_list = self.get_all_container_ports()
+        #container_image_port_list = 
+        self.get_all_container_ports()
         if port in self.combined_ports_list_:
             return True
         else:
@@ -66,7 +67,7 @@ class ClientDocker(object):
         return_port = port
         port_taken = True
         while port_taken == True:
-            if self._search_for_port(port):
+            if self._search_for_port(return_port):
                 return_port = self._generate_random_port()
             else:
                 port_taken = False
@@ -102,7 +103,7 @@ class ClientDocker(object):
     def run_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always'}
         if volume is not None:
-            volume = {'/home/vagrant/' + image + '/data': {'bind': volume, 'mode': 'rw'}
+            volume = {'/home/vagrant/' + image + '/data': {'bind': volume, 'mode': 'rw'}}
         
         ports = self._handle_ports(port)
 
