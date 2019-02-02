@@ -28,7 +28,8 @@ class ClientDocker(object):
 
     def _get_host_port_list(self, container_list):
         # containers = self.get_all_containers
-        external_ports = []
+        external_ports_dict = []
+        combined_ports_list = []
         for container in container_list:
             # get the ports in the container list
             container_ports = container['ports'].keys()
@@ -41,13 +42,14 @@ class ClientDocker(object):
                     external_port = port.split('/')[0]
                 # add external port to list
                 external_port_list.append(external_port)
-            external_ports.append({
+                combined_ports_list.extend(external_port)
+            external_ports_dict.append({
                 'name': container['name'],
                 'image': container['image'],
                 'external-port-lists': external_port_list
             })
-
-        return external_ports
+        self.combined_ports_list_ = combined_ports_list
+        return external_ports_dict
     
     def _generate_random_port(self):
         generated_port_number = 5000 + random.randint(1, 4000)
@@ -55,12 +57,10 @@ class ClientDocker(object):
 
     def _search_for_port(self, port):
         container_image_port_list = self.get_all_container_ports()
-        
-        for container in container_image_port_list:
-            if container['port'] == port:
-                return True
-        
-        return False
+        if port in self.combined_ports_list_:
+            return True
+        else:
+            return False
     
     def _check_port_availability(self, port):
         return_port = port
@@ -73,6 +73,15 @@ class ClientDocker(object):
         
         return return_port
 
+    def _handle_ports(self, port_list):
+        final_ports = {}
+        for port in port_list:
+            internal_port = f'{port}/tcp'
+            external_port = self._check_port_availability(port)
+            # TODO: handle multiple ports
+            final_ports[internal_port] = external_port
+        
+        return final_ports
 
     def get_active_containers(self):
         active_containers = self.client.containers.list()
@@ -91,23 +100,21 @@ class ClientDocker(object):
         return self._get_host_port_list(all_containers)
     
     def run_container(self, image, port, volume=None, env_vars=None):
-        restart_policy = {'Name':'always', 'MaximumRetryCount':5}
+        restart_policy = {'Name':'always'}
         if volume is not None:
-            volume = {'/home/vagrant/' + image + '/data': volume }
+            volume = {'/home/vagrant/' + image + '/data': {'bind': volume, 'mode': 'rw'}
         
-        # {'2222/tcp': 3333}
-        internal_port = f'{port}/tcp'
-        externa_port = self._check_port_availability(port)
-        # handle multiple ports
-        ports = {internal_port: external_port} 
-        # TODO: Handle ports
-        # 1. Check if container is needed
-        # 2. Check if port is taken - TRUE -> assign a new random one 5000+
-        # 3. Return container
+        ports = self._handle_ports(port)
+
         container = self.client.containers.run(image, restart_policy=restart_policy,
-                                                port=ports, detach=True)
+                                                name=image, environment=env_vars,
+                                                volumes=volume,
+                                                ports=ports, detach=True)
         
-        return image
+        return {
+            'id':container.id,
+            'image':container.image.tags[0]
+        }
 
 
 def main():
