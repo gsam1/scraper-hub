@@ -9,4 +9,5 @@ A lot of my Data Science/Machine Learning projects require scraping a web pages 
 
 
 ## 3. Status
-Nothing ready...
+1. Admin API in progress.
+2. Ingestion - not yet started.
