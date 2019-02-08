@@ -53,7 +53,7 @@ def get_container():
             {
                 "name":"mysql-01",
                 "container-id":"container-id-string",
-                "port":"5123"
+                "port":"5152"
             }
     '''
     req_json = request.get_json()
@@ -66,13 +66,25 @@ def get_container():
         container_query_result = cld.get_container(query_name)
 
         if bool(container_query_result['exists']):
-            pass
-            # return container name, container, ports
+            # check status
+            if container_query_result['status'] == 'running':
+                resp_obj = {
+                    'name': container_query_result['name'],
+                    # TODO: implement id
+                    'port': container_query_result['ports']
+                }
+            elif container_query_result['status'] == 'exited':
+                pass
+                # TODO: run the container and return the object
+            else:
+                raise ValueError('Unknow container exit status')
+            # return container name, container, ports   
             # return object {name, container.id, ports}
         else:
             # provision newl container and return name, container, ports
             pass
 
+    return resp_obj
 
 @admin.route('/provision_container', methods=['POST'])
 def provision_container():

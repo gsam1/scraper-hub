@@ -22,6 +22,7 @@ class ClientDocker(object):
             container_list.append({
                 'name': container.name,
                 'image': container.image.tags[0],
+                'id': container.id,
                 'status': container.status,
                 'ports': container.attrs['NetworkSettings']['Ports']
             })
@@ -138,7 +139,7 @@ class ClientDocker(object):
         else:
             return_obj['exists'] = False
 
-    return return_obj
+        return return_obj
 
     
     def provision_container(self, image, port, volume=None, env_vars=None):
