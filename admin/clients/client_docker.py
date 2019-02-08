@@ -11,6 +11,7 @@ from config import admin_config
 # Setting a temp Global
 ENV = 'development'
 
+# client
 class ClientDocker(object):
     def __init__(self, url):
         self.client = docker.DockerClient(base_url=url)
@@ -83,7 +84,31 @@ class ClientDocker(object):
             final_ports[internal_port] = external_port
         
         return final_ports
+    
+    def _get_last_container_of_type(self, container_list):
+        list_split = [item.split('-') for item in container_list]
+        max_val = 0
+        for item in list_split:
+            # check whether the item contains two items, as its supposed to
+            if len(item) == 2:
+                try:
+                    if int(item[1]) > max_val:
+                        max_val = int(item[1])
+                except ValueError: # handle if there is no int
+                    pass
+        
+        return max_val
 
+    def _generate_new_name(self, image):
+        all_containers = self.get_all_containers()
+        container_names = [container['name'] for container in all_containers]
+        same_image_containers = list(filter(lambda name: image in name, container_names))
+        new_container_id = self._get_last_container_of_type(same_image_containers) + 1
+        # don't suppose there is going to be more than 99 container
+        new_name = image + '-' + str(new_container_id).zfill(2)
+
+        return new_name
+        
     def get_active_containers(self):
         active_containers = self.client.containers.list()
         return self._create_container_obj_list(active_containers)
@@ -102,13 +127,15 @@ class ClientDocker(object):
     
     def run_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always'}
-        if volume is not None:
-            volume = {'/home/vagrant/' + image + '/data': {'bind': volume, 'mode': 'rw'}}
         
         ports = self._handle_ports(port)
+        name = self._generate_new_name(image)
+
+        if volume is not None:
+            volume = {'/home/vagrant/' + name + '/data': {'bind': volume, 'mode': 'rw'}}
 
         container = self.client.containers.run(image, restart_policy=restart_policy,
-                                                name=image, environment=env_vars,
+                                                name=name, environment=env_vars,
                                                 volumes=volume,
                                                 ports=ports, detach=True)
         
@@ -116,6 +143,8 @@ class ClientDocker(object):
             'id':container.id,
             'image':container.image.tags[0]
         }
+
+    
 
 
 def main():
