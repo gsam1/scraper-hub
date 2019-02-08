@@ -22,6 +22,7 @@ class ClientDocker(object):
             container_list.append({
                 'name': container.name,
                 'image': container.image.tags[0],
+                'status': container.status,
                 'ports': container.attrs['NetworkSettings']['Ports']
             })
 
@@ -125,7 +126,22 @@ class ClientDocker(object):
         all_containers = self.get_all_containers()
         return self._get_host_port_list(all_containers)
     
-    def run_container(self, image, port, volume=None, env_vars=None):
+    def get_container(self, query_name):
+        all_containers = self.get_all_containers()
+        # only 1 item in the filtered dict list
+        result = list(filter(lambda cntr: cntr['name'] == query_name, all_containers))
+        if len(result) > 0:
+            return_obj['exists'] = True
+            return_obj['name'] = result[0]['name']
+            return_obj['ports'] = result[0]['ports']
+            return_obj['status'] = result[0]['status']
+        else:
+            return_obj['exists'] = False
+
+    return return_obj
+
+    
+    def provision_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always'}
         
         ports = self._handle_ports(port)
@@ -143,8 +159,6 @@ class ClientDocker(object):
             'id':container.id,
             'image':container.image.tags[0]
         }
-
-    
 
 
 def main():

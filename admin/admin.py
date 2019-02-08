@@ -11,10 +11,10 @@ cld = ClientDocker(config.docker_url)
 
 # helper functions
 def request_image_mapper(request):
-    image = image_map[req_json['type']][req_json['distribution']]['image']
-    port = image_map[req_json['type']][req_json['distribution']]['default_port']
-    volume = image_map[req_json['type']][req_json['distribution']]['data_location']
-    env_vars = image_map[req_json['type']][req_json['distribution']]['env_vars']
+    image = image_map[request['type']][request['distribution']]['image']
+    port = image_map[request['type']][request['distribution']]['default_port']
+    volume = image_map[request['type']][request['distribution']]['data_location']
+    env_vars = image_map[request['type']][request['distribution']]['env_vars']
 
     return image, port, volume, env_vars
 
@@ -25,12 +25,10 @@ def index():
 
 @admin.route('/get_all_containers')
 def get_all_containers():
-    # containers_list = str(cld.get_all_containers())
     return jsonify(cld.get_all_containers())
 
 @admin.route('/get_active_containers')
 def get_active_containers():
-    # containers_list = str(cld.get_active_containers())
     return jsonify(cld.get_active_containers())
 
 @admin.route('/get_active_container_ports')
@@ -41,14 +39,46 @@ def get_active_container_ports():
 def get_all_container_ports():
     return jsonify(cld.get_all_container_ports())
 
-@admin.route('/run_container', methods=['POST'])
-def run_container():
+@admin.route('/get_container')
+def get_container():
+    '''
+        request:
+            { 
+                "type":"SQL",
+                "distribution":"mysql",
+                "instance": "1",
+                "new":"false"
+            }
+        response:
+            {
+                "name":"mysql-01",
+                "container-id":"container-id-string",
+                "port":"5123"
+            }
+    '''
     req_json = request.get_json()
-    image = image_map[req_json['type']][req_json['distribution']]['image']
-    port = image_map[req_json['type']][req_json['distribution']]['default_port']
-    volume = image_map[req_json['type']][req_json['distribution']]['data_location']
-    env_vars = image_map[req_json['type']][req_json['distribution']]['env_vars']
-    cntr_id = cld.run_container(image, port, volume, env_vars)
+    # check whether a new instance is required
+    if bool(req_json['new']):
+        # provision container and return name, container, ports
+        pass
+    else:
+        query_name = req_json['distribution'] + '-' + req_json['instance'].zfill(2)
+        container_query_result = cld.get_container(query_name)
+
+        if bool(container_query_result['exists']):
+            pass
+            # return container name, container, ports
+            # return object {name, container.id, ports}
+        else:
+            # provision newl container and return name, container, ports
+            pass
+
+
+@admin.route('/provision_container', methods=['POST'])
+def provision_container():
+    req_json = request.get_json()
+    image, port, volume, env_vars = request_image_mapper(req_json)
+    cntr_id = cld.provision_container(image, port, volume, env_vars)
 
     return f'{cntr_id}'
 
