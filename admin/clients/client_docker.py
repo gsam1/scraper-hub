@@ -142,6 +142,10 @@ class ClientDocker(object):
 
         return return_obj
 
+    def start_container(container_id):
+        container = self.client.containers.get(container_id)
+        container.start()
+        # TODO: return a verification that was executed.
     
     def provision_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always'}
@@ -158,8 +162,10 @@ class ClientDocker(object):
                                                 ports=ports, detach=True)
         
         return {
+            'name': name,
             'id':container.id,
-            'image':container.image.tags[0]
+            'image':container.image.tags[0],
+            'ports': ports
         }
 
 

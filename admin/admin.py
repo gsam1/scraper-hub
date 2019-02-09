@@ -41,26 +41,13 @@ def get_all_container_ports():
 
 @admin.route('/get_container')
 def get_container():
-    '''
-        request:
-            { 
-                "type":"SQL",
-                "distribution":"mysql",
-                "instance": "1",
-                "new":"false"
-            }
-        response:
-            {
-                "name":"mysql-01",
-                "container-id":"container-id-string",
-                "port":"5152"
-            }
-    '''
     req_json = request.get_json()
+    image, port, volume, env_vars = request_image_mapper(req_json)
     # check whether a new instance is required
     if bool(req_json['new']):
         # provision container and return name, container, ports
-        pass
+        cntr_resp = cld.provision_container(image, port, volume, env_vars)
+        resp_obj = cntr_resp
     else:
         query_name = req_json['distribution'] + '-' + req_json['instance'].zfill(2)
         container_query_result = cld.get_container(query_name)
@@ -70,19 +57,25 @@ def get_container():
             if container_query_result['status'] == 'running':
                 resp_obj = {
                     'name': container_query_result['name'],
-                    # TODO: implement id
+                    'id': container_query_result['id'],
                     'port': container_query_result['ports']
                 }
             elif container_query_result['status'] == 'exited':
-                pass
-                # TODO: run the container and return the object
+                # pass the container id
+                cld.start_container(container_query_result['id'])
+                # return the response object
+                # NOTE: probably a better way to do this!
+                resp_obj = {
+                    'name': container_query_result['name'],
+                    'id': container_query_result['id'],
+                    'port': container_query_result['ports']
+                }
             else:
-                raise ValueError('Unknow container exit status')
-            # return container name, container, ports   
-            # return object {name, container.id, ports}
+                raise ValueError('Unknow container status')
         else:
             # provision newl container and return name, container, ports
-            pass
+            cntr_resp = cld.provision_container(image, port, volume, env_vars)
+            resp_obj = cntr_resp
 
     return resp_obj
 
