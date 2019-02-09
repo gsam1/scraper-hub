@@ -18,6 +18,51 @@ def request_image_mapper(request):
 
     return image, port, volume, env_vars
 
+def handle_port_response(port_dict, default_port, found):
+    '''
+    #### existing_running
+    "port": {
+        "3306/tcp": [
+            {
+                "HostIp": "0.0.0.0",
+                "HostPort": "5152"
+            }
+        ],
+        "33060/tcp": null
+    }
+
+    #### existing exited
+    "port": {
+        "3306/tcp": [
+            {
+                "HostIp": "",
+                "HostPort": "5510"
+            }
+        ]
+    }
+
+    #### not found
+    "ports": {
+        "3306/tcp": "8159"
+    }
+
+    #### new
+    "ports": {
+        "3306/tcp": "5419"
+    }
+
+    ###
+    
+    '''
+    print(port_dict)
+    default_port = default_port[0] + '/tcp'
+    if found:
+        port = port_dict[default_port][0]['HostPort']
+    else:
+        port = port_dict[default_port]
+    
+    return port
+
 # Routes
 @admin.route('/')
 def index():
@@ -39,15 +84,25 @@ def get_active_container_ports():
 def get_all_container_ports():
     return jsonify(cld.get_all_container_ports())
 
-@admin.route('/get_container')
-def get_container():
+@admin.route('/provision_container', methods=['POST'])
+def provision_container():
+    req_json = request.get_json()
+    image, port, volume, env_vars = request_image_mapper(req_json)
+    cntr_id = cld.provision_container(image, port, volume, env_vars)
+
+    return f'{cntr_id}'
+
+@admin.route('/provide_db', methods=['POST'])
+def provide_db():
     req_json = request.get_json()
     image, port, volume, env_vars = request_image_mapper(req_json)
     # check whether a new instance is required
-    if bool(req_json['new']):
+    new = True if req_json['new'] == 'yes' else False
+    if new:
         # provision container and return name, container, ports
         cntr_resp = cld.provision_container(image, port, volume, env_vars)
         resp_obj = cntr_resp
+        resp_obj['port'] = handle_port_response(resp_obj['port'], port, False)
     else:
         query_name = req_json['distribution'] + '-' + req_json['instance'].zfill(2)
         container_query_result = cld.get_container(query_name)
@@ -58,34 +113,23 @@ def get_container():
                 resp_obj = {
                     'name': container_query_result['name'],
                     'id': container_query_result['id'],
-                    'port': container_query_result['ports']
+                    'port': handle_port_response(container_query_result['ports'], port, True)
                 }
             elif container_query_result['status'] == 'exited':
                 # pass the container id
-                cld.start_container(container_query_result['id'])
+                container_resp = cld.start_container(container_query_result['id'])
                 # return the response object
-                # NOTE: probably a better way to do this!
-                resp_obj = {
-                    'name': container_query_result['name'],
-                    'id': container_query_result['id'],
-                    'port': container_query_result['ports']
-                }
+                resp_obj = container_resp
+                resp_obj['port'] = handle_port_response(resp_obj['port'], port, True)
             else:
                 raise ValueError('Unknow container status')
         else:
             # provision newl container and return name, container, ports
             cntr_resp = cld.provision_container(image, port, volume, env_vars)
             resp_obj = cntr_resp
+            resp_obj['port'] = handle_port_response(resp_obj['port'], port, False)
 
-    return resp_obj
-
-@admin.route('/provision_container', methods=['POST'])
-def provision_container():
-    req_json = request.get_json()
-    image, port, volume, env_vars = request_image_mapper(req_json)
-    cntr_id = cld.provision_container(image, port, volume, env_vars)
-
-    return f'{cntr_id}'
+    return jsonify(resp_obj)
 
 if __name__ == '__main__':
     admin.run(debug=True)

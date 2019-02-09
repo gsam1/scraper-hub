@@ -129,6 +129,7 @@ class ClientDocker(object):
     
     def get_container(self, query_name):
         all_containers = self.get_all_containers()
+        return_obj = {}
         # only 1 item in the filtered dict list
         result = list(filter(lambda cntr: cntr['name'] == query_name, all_containers))
         if len(result) > 0:
@@ -142,10 +143,16 @@ class ClientDocker(object):
 
         return return_obj
 
-    def start_container(container_id):
+    def start_container(self, container_id):
         container = self.client.containers.get(container_id)
         container.start()
-        # TODO: return a verification that was executed.
+        response = {
+            'name': container.name,
+            'id': container.id,
+            'port': container.attrs['HostConfig']['PortBindings']
+        }
+
+        return response
     
     def provision_container(self, image, port, volume=None, env_vars=None):
         restart_policy = {'Name':'always'}
@@ -164,8 +171,7 @@ class ClientDocker(object):
         return {
             'name': name,
             'id':container.id,
-            'image':container.image.tags[0],
-            'ports': ports
+            'port': ports
         }
 
 
