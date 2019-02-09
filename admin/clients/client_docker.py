@@ -134,6 +134,7 @@ class ClientDocker(object):
         if len(result) > 0:
             return_obj['exists'] = True
             return_obj['name'] = result[0]['name']
+            return_obj['id'] = result[0]['id']
             return_obj['ports'] = result[0]['ports']
             return_obj['status'] = result[0]['status']
         else:
