@@ -19,42 +19,6 @@ def request_image_mapper(request):
     return image, port, volume, env_vars
 
 def handle_port_response(port_dict, default_port, found):
-    '''
-    #### existing_running
-    "port": {
-        "3306/tcp": [
-            {
-                "HostIp": "0.0.0.0",
-                "HostPort": "5152"
-            }
-        ],
-        "33060/tcp": null
-    }
-
-    #### existing exited
-    "port": {
-        "3306/tcp": [
-            {
-                "HostIp": "",
-                "HostPort": "5510"
-            }
-        ]
-    }
-
-    #### not found
-    "ports": {
-        "3306/tcp": "8159"
-    }
-
-    #### new
-    "ports": {
-        "3306/tcp": "5419"
-    }
-
-    ###
-    
-    '''
-    print(port_dict)
     default_port = default_port[0] + '/tcp'
     if found:
         port = port_dict[default_port][0]['HostPort']

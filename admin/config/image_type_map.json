@@ -5,6 +5,12 @@
             "default_port":["3306"],
             "env_vars": ["MYSQL_ROOT_PASSWORD=qwe123"],
             "data_location":"/var/lib/mysql"
+        },
+        "postgresql": {
+            "image":"postgres",
+            "default_port":["5432"],
+            "env_vars": ["POSTGRES_PASSWORD=qwe123"],
+            "data_location":"/var/lib/postgresql/data"
         }
     },
     "DOCUMENT": {
