@@ -19,5 +19,12 @@
             "default_port": ["27017"],
             "data_location":"/data/db"
         }
+    },
+    "FILE": {
+        "minio": {
+            "image": "minio",
+            "default_port": ["9000"],
+            "data_location": "/data"
+        }
     }
 }
